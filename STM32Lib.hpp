@@ -99,7 +99,7 @@ public:
 	**/
 	void WorkForMS(const uint32_t& ms)
 	{
-		for(uint32_t i=0 ; i<ms*10000 ; i++);
+		for(uint32_t i=0 ; i<ms*2700 ; i++);
 	}
 
 	/**

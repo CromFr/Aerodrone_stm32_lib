@@ -24,15 +24,6 @@ void STM32::SetPinType(const Pin& pin, PinType type)
 			GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
 			GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_DOWN;
 			GPIO_Init(pin.first, &GPIO_InitStruct);
-//			pin.first->MODER &= ~((uint32_t)(0b11<<(pin.second*2)));//Set 00
-//			//Set OpenDrain
-//			pin.first->OTYPER |= ((uint16_t)(0b1<<(pin.second)));//Set 1
-//			//Set medium speed
-//			pin.first->OSPEEDR &= ~((uint32_t)(0b10<<(pin.second*2)));//Set 0x
-//			pin.first->OSPEEDR |= ((uint32_t)(0b01<<(pin.second*2)));//Set x1
-//			//Set PullDown
-//			pin.first->PUPDR &= ~((uint32_t)(0b01<<(pin.second*2)));//Set x0
-//			pin.first->PUPDR |= ((uint32_t)(0b10<<(pin.second*2)));//Set 1x
 			break;
 
 		case DigitalOutput:
@@ -43,17 +34,6 @@ void STM32::SetPinType(const Pin& pin, PinType type)
 			GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 			GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 			GPIO_Init(pin.first, &GPIO_InitStruct);
-
-//			//Init with manual register set
-//			pin.first->MODER &= ~((uint32_t)(0b10<<(pin.second*2)));//Set 0x
-//			pin.first->MODER |= ((uint32_t)(0b01<<(pin.second*2)));//Set x1
-//			//Set push/pull
-//			pin.first->OTYPER |= ~((uint16_t)(0b1<<(pin.second)));//Set 0
-//			//Set medium speed
-//			pin.first->OSPEEDR &= ~((uint32_t)(0b01<<(pin.second*2)));//Set x0
-//			pin.first->OSPEEDR |= ((uint32_t)(0b10<<(pin.second*2)));//Set 1x
-//			//Set no pullup/pulldown
-//			pin.first->PUPDR &= ~((uint32_t)(0b11<<(pin.second*2)));//Set 00
 			break;
 
 		case Analog:
@@ -82,36 +62,6 @@ void STM32::SetPinType(const Pin& pin, PinType type)
 			pin.first->PUPDR &= ~((uint32_t)(0b01<<(pin.second*2)));//Set x0
 			pin.first->PUPDR |= ((uint32_t)(0b10<<(pin.second*2)));//Set 1x
 			break;
-//
-//		case Spi:
-//			static bool bSpiInit = false;
-//			if(!bSpiInit)
-//			{
-//				bSpiInit=true;
-//
-//				//Init SPI-Pins
-//				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
-//				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-//				GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//				GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-//				GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-//				GPIO_Init(GPIOA, &GPIO_InitStructure);
-//				GPIO_PinAFConfig(GPIOA, GPIO_PinSource5 , GPIO_AF_SPI1);
-//				GPIO_PinAFConfig(GPIOA, GPIO_PinSource6 , GPIO_AF_SPI1);
-//				GPIO_PinAFConfig(GPIOA, GPIO_PinSource7 , GPIO_AF_SPI1);
-//			}
-//			GPIO_InitStructure.GPIO_Pin = 0b1 << pin.second;
-//			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-//			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-//			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-//			GPIO_Init(pin.first, &GPIO_InitStructure);
-//			GPIO_SetBits(pin.first, pin.second);  //Set CS high
-//
-//			GPIO_PinAFConfig(pin.first, 0b1<<pin.second, GPIO_AF_SPI1);
-//
-//
-//			break;
 	}
 }
 bool STM32::GetPinDigitalValue(const Pin& pin)
