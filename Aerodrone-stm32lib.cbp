@@ -34,10 +34,20 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-DUSE_DEFAULT_TIMEOUT_CALLBACK" />
 		</Compiler>
 		<Unit filename="STM32Lib.cpp" />
 		<Unit filename="STM32Lib.hpp" />
+		<Unit filename="Vector3D.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="stm32f4_discovery.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stm32f4_discovery.h" />
+		<Unit filename="stm32f4_discovery_lis302dl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stm32f4_discovery_lis302dl.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

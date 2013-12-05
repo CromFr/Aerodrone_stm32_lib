@@ -5,6 +5,7 @@
 #include <stm32f4xx.h>
 #include <stm32f4xx_gpio.h>
 #include <stm32f4xx_rcc.h>
+#include <stm32f4xx_tim.h>
 #include <stm32f4_discovery_lis302dl.h>
 
 #include "Vector3D.hpp"
@@ -41,20 +42,16 @@ private://Pinout
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
+
 		SetPinType(PinLedBlue, DigitalOutput);
 		SetPinType(PinLedGreen, DigitalOutput);
 		SetPinType(PinLedOrange, DigitalOutput);
 		SetPinType(PinLedRed, DigitalOutput);
 		SetPinType(PinButton, DigitalInput);
 
-		//Accelerometer init
-		LIS302DL_InitTypeDef inittype;
-		inittype.Power_Mode = LIS302DL_LOWPOWERMODE_ACTIVE;
-		inittype.Output_DataRate = LIS302DL_DATARATE_400;
-		inittype.Axes_Enable = LIS302DL_XYZ_ENABLE;
-		inittype.Full_Scale = LIS302DL_FULLSCALE_2_3;
-		inittype.Self_Test = LIS302DL_SELFTEST_NORMAL;
-		LIS302DL_Init(&inittype);
+		InitAccelero();
+		InitTim1PWM();
 	}
 
 
@@ -87,12 +84,21 @@ public:
 	/**
 	@brief Reads the value of one pin
 	**/
-	bool GetPinDigitalValue(const Pin& pin);
+	bool GetPinDigitalValue(const Pin& pin)
+	{
+		return (pin.first->IDR & (0b1 << pin.second))>0;
+	}
 
 	/**
 	@brief Sets the value of one pin
 	**/
-	void SetPinDigitalValue(const Pin& pin, bool val);
+	void SetPinDigitalValue(const Pin& pin, bool val)
+	{
+		if(val==true)
+			pin.first->BSRRL = 0b1<<pin.second;
+		else
+			pin.first->BSRRH = 0b1<<pin.second;
+	}
 
 	/**
 	@brief Work for some milliseconds
@@ -117,20 +123,31 @@ public:
 	/**
 	@brief Returns the value of the accelerometer in a 3d vector. The values goes from -128 to +128
 	**/
-	Vector3D<int8_t> GetAccelerometerValue();
+	Vector3D<int8_t> GetAccelerometerValue()
+	{
+		Vector3D<int8_t> vRet;
+		LIS302DL_Read((uint8_t*)&vRet.x, LIS302DL_OUT_X_ADDR, 1);
+		LIS302DL_Read((uint8_t*)&vRet.y, LIS302DL_OUT_Y_ADDR, 1);
+		LIS302DL_Read((uint8_t*)&vRet.z, LIS302DL_OUT_Z_ADDR, 1);
+		return vRet;
+	}
+
+	void SetTim1PWM(int nChannel, float fDutyCycle)
+	{
+		switch(nChannel)
+		{
+			case 1: TIM_SetCompare1(TIM1, 200*(1.0-fDutyCycle)); return;
+			case 2: TIM_SetCompare2(TIM1, 200*(1.0-fDutyCycle)); return;
+			case 3: TIM_SetCompare3(TIM1, 200*(1.0-fDutyCycle)); return;
+			case 4: TIM_SetCompare4(TIM1, 200*(1.0-fDutyCycle)); return;
+		}
+	}
 
 private:
-
+	void InitAccelero();
+	void InitTim1PWM();
 
 };
-
-
-
-
-// http://hertaville.com/2012/07/28/stm32f0-gpio-tutorial-part-1/
-
-
-
 
 
 

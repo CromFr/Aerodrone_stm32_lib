@@ -64,19 +64,6 @@ void STM32::SetPinType(const Pin& pin, PinType type)
 			break;
 	}
 }
-bool STM32::GetPinDigitalValue(const Pin& pin)
-{
-	uint16_t valTrue = 0b1 << pin.second;
-
-	return (pin.first->IDR & valTrue)>0;
-}
-void STM32::SetPinDigitalValue(const Pin& pin, bool val)
-{
-	if(val==true)
-		pin.first->BSRRL = 0b1<<pin.second;
-	else
-		pin.first->BSRRH = 0b1<<pin.second;
-}
 
 
 void STM32::PlayCode(const char* cCode)
@@ -110,15 +97,85 @@ void STM32::ExitWithCode(const char* cCode)
 }
 
 
-Vector3D<int8_t> STM32::GetAccelerometerValue()
+
+
+
+void STM32::InitAccelero()
 {
-	uint8_t buf;
-	Vector3D<int8_t> vRet;
-	LIS302DL_Read(&buf, LIS302DL_OUT_X_ADDR, 1);
-	vRet.x = buf;
-	LIS302DL_Read(&buf, LIS302DL_OUT_Y_ADDR, 1);
-	vRet.y = buf;
-	LIS302DL_Read(&buf, LIS302DL_OUT_Z_ADDR, 1);
-	vRet.z = buf;
-	return vRet;
+	//Accelerometer init
+	LIS302DL_InitTypeDef inittype;
+	inittype.Power_Mode = LIS302DL_LOWPOWERMODE_ACTIVE;
+	inittype.Output_DataRate = LIS302DL_DATARATE_400;
+	inittype.Axes_Enable = LIS302DL_XYZ_ENABLE;
+	inittype.Full_Scale = LIS302DL_FULLSCALE_2_3;
+	inittype.Self_Test = LIS302DL_SELFTEST_NORMAL;
+	LIS302DL_Init(&inittype);
+}
+
+void STM32::InitTim1PWM()
+{
+	constexpr TIM_TypeDef* tim = TIM1;
+
+	//Init pins to AF
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Pin = (GPIO_Pin_9 | GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+	GPIO_Init(GPIOE, &GPIO_InitStructure);
+
+	// Connect TIM1 pins to AF
+	GPIO_PinAFConfig(GPIOE, GPIO_PinSource9,  GPIO_AF_TIM1);
+	GPIO_PinAFConfig(GPIOE, GPIO_PinSource11, GPIO_AF_TIM1);
+	GPIO_PinAFConfig(GPIOE, GPIO_PinSource13, GPIO_AF_TIM1);
+	GPIO_PinAFConfig(GPIOE, GPIO_PinSource14, GPIO_AF_TIM1);
+
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	TIM_OCInitTypeDef  TIM_OCInitStructure;
+
+
+	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period = (200-1);
+	TIM_TimeBaseStructure.TIM_Prescaler = (42000-1);
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(tim, &TIM_TimeBaseStructure);
+
+	/* PWM1 Mode configuration: Channel1 */
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 0;
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+
+	TIM_OC1Init(tim, &TIM_OCInitStructure);
+	TIM_OC1PreloadConfig(tim, TIM_OCPreload_Enable);
+
+	/* PWM1 Mode configuration: Channel2 */
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 0;
+	TIM_OC2Init(tim, &TIM_OCInitStructure);
+
+	TIM_OC2PreloadConfig(tim, TIM_OCPreload_Enable);
+
+	/* PWM1 Mode configuration: Channel3 */
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 0;
+	TIM_OC3Init(tim, &TIM_OCInitStructure);
+
+	TIM_OC3PreloadConfig(tim, TIM_OCPreload_Enable);
+
+	/* PWM1 Mode configuration: Channel4 */
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 0;
+	TIM_OC4Init(tim, &TIM_OCInitStructure);
+
+	TIM_OC4PreloadConfig(tim, TIM_OCPreload_Enable);
+
+	TIM_ARRPreloadConfig(tim, ENABLE);
+
+	//required for timers 1 or 8
+	TIM_CtrlPWMOutputs(tim, ENABLE);
+
+	/* TIM1 enable counter */
+	TIM_Cmd(tim, ENABLE);
 }
